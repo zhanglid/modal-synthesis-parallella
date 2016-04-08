@@ -16,6 +16,42 @@
 #include "e_lib.h"
 #include "inc/modes_gen.h"
 //#include "inc/e_mstring.h"
+
+
+static inline float __p_exp_ln2(const float x)
+{
+	const float a1 = -0.9998684f;
+	const float a2 = 0.4982926f;
+	const float a3 = -0.1595332f;
+	const float a4 = 0.0293641f;
+	float exp_x;
+	exp_x = 1.f +
+		a1 * x +
+		a2 * x * x +
+		a3 * x * x * x +
+		a4 * x * x * x * x;
+	return 1.f / exp_x;
+}
+
+static inline float __p_exp_pos(const float x)
+{
+	long int k, twok;
+	float x_;
+	k = x / M_LN2;
+	twok = 1U << k;
+	x_ = x - (float)k * M_LN2;
+	return (float)twok * __p_exp_ln2(x_);
+}
+
+static inline float _p_exp(const float x)
+{
+	if (x >= 0.f)
+		return __p_exp_pos(x);
+	else
+		return 1.f / __p_exp_pos(-x);
+}
+
+
 static inline float p_cos_f32(const float a)
 {
 
@@ -81,6 +117,7 @@ int e_string_modes(mstring* n_string, Spara* p_para)
 			i++;
 			R = exp(rpre1 + rpre2 * mm);
 			n_string->R[i - 1] = R;
+			n_string->alph[i - 1] = p_para->b1 + p_para->b2*mm*kpm*kpm;
 			n_string->w[i - 1] = w;
 			n_string->we[i - 1] = sin(m * prewe);
 			if (OUTPUT_VELOCITY) n_string->wp[i - 1] = sin(m * prewp);
@@ -181,7 +218,6 @@ int e_string_modesUpdate(mstring* n_string, Spara* p_para){
 		if (t>0 && t<PI*p_para->Fs)
 		{
 			dR=n_string->dRr1[m-1]*drpre1+n_string->dRr2[m-1]*drpre2;
-
 			t=n_string->R[m-1]+dR;
 			while(n_string->R[m-1]!=t) n_string->R[m-1]=t;
 			n_string->we[m-1] += n_string->dwep[m-1]*dprewe;
@@ -191,12 +227,28 @@ int e_string_modesUpdate(mstring* n_string, Spara* p_para){
 			if (OUTPUT_FORCE)	n_string->wp[m-1] += n_string->dwft[m-1]*dTe + n_string->dwfei[m-1]*dEI + n_string->dwfkpm[m-1]*dkpm;
 			t = b1_prefix*n_string->R[m-1];
 			while(n_string->b1[m-1]!=t) n_string->b1[m-1]=t;
+			n_string->alph[m - 1] = p_para->b1 + p_para->b2 * m*m * kpm * kpm;
 		}
 		else
 		{
-			n_string->m=m;
+			n_string->m = m;
 			break;
 		}
 	}
   return 1;
+}
+
+
+void e_inp_gen(mstring* n_string, Spara* p_para){
+		size_t i, m;
+		extern float inpvalue[];
+		//extern volatile char *pmsg;
+		float sum = 0;
+		float exp_alph_t[n_string->m];
+		float amp_m[MODENUM] = {0};
+		float total_amp = 0;
+		const float hanning7[]={ 0.1464, 0.5000, 0.8536, 1.0000, 0.8536, 0.5000, 0.1464 };
+		for (i = 0; i < sizeof(hanning7)/sizeof(float); i++) {
+			inpvalue[i] = (0.000008f*(p_para->c + p_para->kappa*p_para->kappa)/p_para->T)*hanning7[i]/4.0f;
+		}
 }

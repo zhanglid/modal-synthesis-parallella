@@ -10,10 +10,11 @@ void* threadMeasurement(void* p){
 	mstring* (*p_ms)[4]=(mstring* (*)[4])p;
 	volatile int* pnum=&sendnum;
 	while(1){
+		refresh();
 		usleep(30*1000);
+		clear();
 		volatile memspace* pmem=(volatile memspace*)(p_ms[ms_index/4][ms_index%4]->pmem);
 		volatile char* pmsg=(volatile char*)(p_ms[ms_index/4][ms_index%4]->pmsg);
-		refresh();
 		mvprintw(0,0,"sendtime:");
 		attron(A_BOLD);
 		mvprintw(0,10,"%.2fs", (float)((*pnum)*TCPSPEED/44100.0));

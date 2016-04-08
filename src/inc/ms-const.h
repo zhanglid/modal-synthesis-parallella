@@ -9,4 +9,6 @@
 #define DATATYPE float
 #define INPSIZE 10
 #define DEBUG 0
+#define INPSIZE 1024*1024
+#define INPGUITARLENGTH = 3709;
 #endif

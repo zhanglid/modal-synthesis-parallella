@@ -12,12 +12,13 @@ class mstring
 		int start();
 		volatile memspace* pmem;
 		volatile char* pmsg;
+		volatile float* pinp;
 		Spara sp;
 	private:
 		unsigned row;
 		unsigned col;
 		e_epiphany_t dev;
-		e_mem_t msg;
+		e_mem_t inpmem;
 		e_mem_t mem;
 };
 #endif

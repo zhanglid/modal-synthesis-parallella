@@ -9,6 +9,7 @@ mstring::mstring(unsigned _row, unsigned _col, Spara _sp) {
   sp = _sp;
   row = _row;
   col = _col;
+  extern float guitar_data[];
   if (E_ERR==e_open(&dev, row, col, 1, 1)){
       cout<<"e_open failed"<<endl;
   }
@@ -23,10 +24,19 @@ mstring::mstring(unsigned _row, unsigned _col, Spara _sp) {
           cout<<"e_shm_attach failed"<<endl;
       }
     }
-
-      pmem=(volatile memspace*)mem.base;
-      pmsg=pmem->msg;
-      snprintf((char*)pmsg,20,"%d|%d",row,col);
+  snprintf(name,10,"_%dmInp%d", row, col);
+  rc = e_shm_alloc(&inpmem, name, sizeof(float)*INPSIZE);
+      if (rc == E_ERR) {
+        if (E_ERR==e_shm_attach(&inpmem, name)){
+            cout<<"e_shm_attach failed"<<endl;
+        }
+      }
+      pmem = (volatile memspace*)mem.base;
+      pmsg = pmem->msg;
+      pinp = inpmem.base;
+      do {
+        memcpy(pinp, guitar_data, INPGUITARLENGTH*sizeof(float));
+      } while(pinp[100] != guitar_data[100]);
       if (DEBUG){
         fprintf(stderr, "mstring::msg.base:%08x,mem.base:%08x,sizeof(memspace):%d\n",(unsigned)pmsg, (unsigned)pmem,sizeof(memspace));
       }
@@ -37,8 +47,8 @@ mstring::mstring(unsigned _row, unsigned _col, Spara _sp) {
     pmem->syn[0]='n';
     pmem->force='n';
     do {
-    memcpy((void*)&(pmem->parameters),(void*)&sp,sizeof(Spara));
-  }while(pmem->parameters.version!=sp.version);
+      memcpy((void*)&(pmem->parameters),(void*)&sp,sizeof(Spara));
+  }while(pmem->parameters.version != sp.version);
 }
 
   mstring::~mstring() {

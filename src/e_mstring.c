@@ -17,12 +17,12 @@
 #include "inc/e_mstring.h"
 
 e_memseg_t mem;
-e_memseg_t msg;
-volatile memspace *pmem;
-volatile char *pmsg;
-int time_p,time_c,time_compare;
+e_memseg_t inpmem;
+volatile memspace *pmem = NULL;
+volatile char *pmsg = NULL;
+volatile float *pinp = NULL;
 mstring s1;
-const float inpvalue[]={0,5.0533,17.2530,29.4528,34.5061,29.4528,17.2530,5.0533};
+float inpvalue[]={ 0.1464, 0.5000, 0.8536, 1.0000, 0.8536, 0.5000, 0.1464};
 unsigned row, col;
 Spara sp;
 
@@ -30,7 +30,7 @@ int main(void)
 {
 
 	int i = 0, x = 0, j = 0;
-	char name[10]={0};
+	char name[10] = {0};
 
 	row = e_group_config.group_row-32;
 	col = e_group_config.group_col-8;
@@ -40,14 +40,19 @@ int main(void)
 	if (E_OK != e_shm_attach(&mem, name)) {
 		return 0;
 	}
+	snprintf(name, 10, "_%dmInp%d", row, col);
+	if (E_OK != e_shm_attach(&inpmem, name)) {
+		return 0;
+	}
 	pmem = (volatile memspace*)mem.ephy_base;
 	pmsg = pmem->msg;
-
+	pinp = (volatile float*)inpmem.ephy_base;
 	do{
 		memcpy((void*)&sp,(void*)&(pmem->parameters), sizeof(Spara));
 	}while(sp.version != pmem->parameters.version);
 	memspace * test = NULL;
 	e_string_modes(&s1, &sp);
+	e_inp_gen(&s1, &sp);
 	e_string_output(s1, &sp);
 	return EXIT_SUCCESS;
 }
@@ -78,12 +83,14 @@ int e_string_output(mstring string, Spara* p_para)
 
 			if (pmem->paraUpdate == 'y'){
 				e_string_modesUpdate(&string, p_para);
+				e_inp_gen(&string, p_para);
 				while(pmem->paraUpdate != 'n') pmem->paraUpdate = 'n';
 			}
 
 			if(pmem->force == 'y'){
 				flag = 1;
 				pmem->syn[2] = (pmem->syn[2]+1)%26 + 'a';
+				//snprintf(pmsg,128,"multiF:%f",p_para->multiF);
 			}
 
 			if(flag == 1)
@@ -108,6 +115,7 @@ int e_string_output(mstring string, Spara* p_para)
 				if (OUTPUT_VELOCITY) V += string.wp[i] * (p_PHI0[i] - p_PHI2[i]);
 				if (OUTPUT_FORCE) F += string.wp[i] * p_PHI0[i];
 			}
+
 			if (OUTPUT_VELOCITY)	V = V * multi / 2.0;
 			if (OUTPUT_FORCE)	F = F * multi;
 			if (OUTPUT_VELOCITY)	pmem->data[j-1] = V;

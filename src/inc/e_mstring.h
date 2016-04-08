@@ -12,7 +12,8 @@
 //#include "mymath.c"
 #include "ms-data-device.h"
 
-int e_string_output(mstring string,Spara* p_para);
+int e_string_output(mstring string, Spara* p_para);
 int e_string_modes(mstring* n_string, Spara* p_para);
 int e_string_modesUpdate(mstring* n_string, Spara* p_para);
+void e_inp_gen(mstring* n_string, Spara* p_para);
 #endif

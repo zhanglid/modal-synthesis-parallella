@@ -5,7 +5,7 @@
 #include <pthread.h>
 #include <ncurses.h>
 #include "inc/host.h"
-
+#include "inc/inp_guitar.h"
 int main() {
 /*	if (DEBUG) {
 		FILE *stream = freopen( "log.out", "w", stderr );
@@ -112,7 +112,7 @@ int main() {
 }
 
 void genPara(Spara* p_para){
-	p_para->T = 1/(float)p_para->Fs;
+	p_para->T = 1 / (float)p_para->Fs;
 	p_para->xe = p_para->re*p_para->L;
 	p_para->xp = p_para->rp*p_para->L;
 	p_para->A = PI*p_para->a*p_para->a;
@@ -121,6 +121,6 @@ void genPara(Spara* p_para){
 	p_para->c = sqrt(p_para->Te / (p_para->rho*p_para->A));
 	p_para->kappa = sqrt((p_para->E*p_para->I) / (p_para->rho*p_para->A));
 	p_para->multiV = 2.0f / p_para->L * p_para->Fs / 150;
-	p_para->multiF = p_para->multiV /  17000;
+	p_para->multiF = p_para->multiV /  (17000*3.2);
 	p_para->version = 'a';
 }

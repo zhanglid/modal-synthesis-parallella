@@ -21,7 +21,7 @@ typedef struct
 	float a2[MODENUM];
 	float w[MODENUM];
 	float R[MODENUM];
-
+	float alph[MODENUM];
 	float dwep[MODENUM];
 
 	float dwpp[MODENUM];
