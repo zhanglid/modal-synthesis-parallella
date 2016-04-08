@@ -28,7 +28,7 @@ $(BUILDDIR)/threadMeasurement.o: $(SRCDIR)/threadMeasurement.cpp $(INCDIR)/threa
 	$(HOSTCC) -c $(SRCDIR)/threadMeasurement.cpp -o $(BUILDDIR)/threadMeasurement.o $(HOSTCFLAGS)
 $(BUILDDIR)/tcpclient.o: $(SRCDIR)/tcpclient.cpp $(INCDIR)/ms-data-host.h $(INCDIR)/ms-spara.h $(INCDIR)/ms-const.h
 	$(HOSTCC) -c $(SRCDIR)/tcpclient.cpp -o $(BUILDDIR)/tcpclient.o $(HOSTCFLAGS)
-$(BUILDDIR)/host.o: $(SRCDIR)/host.cpp $(INCDIR)/host.h $(INCDIR)/ms-data-host.h $(INCDIR)/threadForce.h $(INCDIR)/threadMeasurement.h $(INCDIR)/tcpclient.h
+$(BUILDDIR)/host.o: $(SRCDIR)/host.cpp $(INCDIR)/inp_guitar.h $(INCDIR)/host.h $(INCDIR)/ms-data-host.h $(INCDIR)/threadForce.h $(INCDIR)/threadMeasurement.h $(INCDIR)/tcpclient.h
 	$(HOSTCC) -c $(SRCDIR)/host.cpp -o $(BUILDDIR)/host.o $(HOSTCFLAGS)
 $(BUILDDIR)/modes_gen.o: $(INCDIR)/ms-spara.h $(INCDIR)/ms-data-device.h $(INCDIR)/modes_gen.h $(INCDIR)/ms-const.h
 	$(DEVICECC) -c $(SRCDIR)/modes_gen.c -o $(BUILDDIR)/modes_gen.o $(DEVICECFLAGS)

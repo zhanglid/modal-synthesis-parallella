@@ -7,8 +7,8 @@
 #define PI 3.1416
 #define TCPSPEED 512
 #define DATATYPE float
-#define INPSIZE 10
+//#define INPSIZE 10
 #define DEBUG 0
-#define INPSIZE 1024*1024
-#define INPGUITARLENGTH = 3709;
+#define INPSIZE 5000
+#define INPGUITARLENGTH 3709
 #endif

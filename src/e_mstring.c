@@ -69,7 +69,7 @@ int e_string_output(mstring string, Spara* p_para)
 		multi = p_para->multiF;
 	if (OUTPUT_VELOCITY)
 		multi = p_para->multiV;
-	int i = 0, j = 0, flag = 0, force_count = 0;
+	int i = 0, j = 0, flag = 0;//, force_count = 0;
 	p_PHI0 = PHI0;
 	p_PHI1 = PHI1;
 	p_PHI2 = PHI2;
@@ -87,7 +87,7 @@ int e_string_output(mstring string, Spara* p_para)
 				while(pmem->paraUpdate != 'n') pmem->paraUpdate = 'n';
 			}
 
-			if(pmem->force == 'y'){
+			if(pmem->force == 'y' && flag !=1 ){
 				flag = 1;
 				pmem->syn[2] = (pmem->syn[2]+1)%26 + 'a';
 				//snprintf(pmsg,128,"multiF:%f",p_para->multiF);
@@ -95,13 +95,13 @@ int e_string_output(mstring string, Spara* p_para)
 
 			if(flag == 1)
 			{
-				inp = inpvalue[force_count];
-				force_count++;
-				if (force_count >= 8)
+				int rc;
+				rc = e_getInp(&inp);
+				if (rc == -1)
 				{
 					while(pmem->force != 'x') pmem->force = 'x';
 					flag = 0;
-					force_count = 0;
+					//force_count = 0;
 				}
 			}
 			else
@@ -116,10 +116,14 @@ int e_string_output(mstring string, Spara* p_para)
 				if (OUTPUT_FORCE) F += string.wp[i] * p_PHI0[i];
 			}
 
-			if (OUTPUT_VELOCITY)	V = V * multi / 2.0;
-			if (OUTPUT_FORCE)	F = F * multi;
-			if (OUTPUT_VELOCITY)	pmem->data[j-1] = V;
-			if (OUTPUT_FORCE) pmem->data[j-1] = F;
+			if (OUTPUT_VELOCITY){
+				V = V * multi / 2.0;
+				pmem->data[j-1] = V;
+			}
+			if (OUTPUT_FORCE) {
+				F = F * multi;
+			  pmem->data[j-1] = F;
+			}
 			t = p_PHI2;
 			p_PHI2 = p_PHI1;
 			p_PHI1 = p_PHI0;

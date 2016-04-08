@@ -6,6 +6,7 @@
 #include <ncurses.h>
 #include "inc/host.h"
 #include "inc/inp_guitar.h"
+float * guitar_data = _guitar_data;
 int main() {
 /*	if (DEBUG) {
 		FILE *stream = freopen( "log.out", "w", stderr );

@@ -9,7 +9,7 @@ mstring::mstring(unsigned _row, unsigned _col, Spara _sp) {
   sp = _sp;
   row = _row;
   col = _col;
-  extern float guitar_data[];
+  extern float *guitar_data;
   if (E_ERR==e_open(&dev, row, col, 1, 1)){
       cout<<"e_open failed"<<endl;
   }
@@ -33,9 +33,9 @@ mstring::mstring(unsigned _row, unsigned _col, Spara _sp) {
       }
       pmem = (volatile memspace*)mem.base;
       pmsg = pmem->msg;
-      pinp = inpmem.base;
+      pinp = (volatile float*)inpmem.base;
       do {
-        memcpy(pinp, guitar_data, INPGUITARLENGTH*sizeof(float));
+        memcpy((void *)pinp, guitar_data, INPGUITARLENGTH*sizeof(float));
       } while(pinp[100] != guitar_data[100]);
       if (DEBUG){
         fprintf(stderr, "mstring::msg.base:%08x,mem.base:%08x,sizeof(memspace):%d\n",(unsigned)pmsg, (unsigned)pmem,sizeof(memspace));

@@ -240,15 +240,32 @@ int e_string_modesUpdate(mstring* n_string, Spara* p_para){
 
 
 void e_inp_gen(mstring* n_string, Spara* p_para){
-		size_t i, m;
-		extern float inpvalue[];
-		//extern volatile char *pmsg;
-		float sum = 0;
+		size_t i;
+		extern volatile float *pinp;
+		static float sum = 4.4044;
 		float exp_alph_t[n_string->m];
-		float amp_m[MODENUM] = {0};
-		float total_amp = 0;
-		const float hanning7[]={ 0.1464, 0.5000, 0.8536, 1.0000, 0.8536, 0.5000, 0.1464 };
-		for (i = 0; i < sizeof(hanning7)/sizeof(float); i++) {
-			inpvalue[i] = (0.000008f*(p_para->c + p_para->kappa*p_para->kappa)/p_para->T)*hanning7[i]/4.0f;
+		float ampValue = (0.000008f*(p_para->c + p_para->kappa*p_para->kappa)/p_para->T)/sum;
+		if (ampValue != 1){
+			sum = ampValue * sum;
+			for (i = 0; i < INPGUITARLENGTH; i++) {
+				float t;
+				t = ampValue * pinp[i];
+				do {
+						pinp[i] = t;
+				} while(pinp[i] != t);
+			}
 		}
+}
+
+
+int e_getInp(float *inp){
+		static unsigned force_count = 0;
+		extern volatile float *pinp;
+		*inp = pinp[force_count];
+		force_count++;
+		if (force_count >= INPGUITARLENGTH){
+			force_count = 0;
+			return -1;
+		}
+		return 1;
 }
