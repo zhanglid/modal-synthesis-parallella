@@ -18,8 +18,8 @@ DEVICESREC=$(BUILDDIR)/e_mstring.srec
 all: $(HOSTELF) $(DEVICESREC)
 $(HOSTELF): $(BUILDDIR)/host.o $(BUILDDIR)/tcpclient.o $(BUILDDIR)/mstring.o $(BUILDDIR)/threadForce.o $(BUILDDIR)/threadMeasurement.o
 	$(HOSTCC) -o $(HOSTELF) $(BUILDDIR)/host.o $(BUILDDIR)/tcpclient.o $(BUILDDIR)/mstring.o $(BUILDDIR)/threadForce.o $(BUILDDIR)/threadMeasurement.o $(HOSTCFLAGS)
-$(EMSELF): $(BUILDDIR)/modes_gen.o $(BUILDDIR)/e_mstring.o
-	$(DEVICECC) -o $(EMSELF) $(BUILDDIR)/modes_gen.o $(BUILDDIR)/e_mstring.o $(DEVICECFLAGS)
+$(EMSELF): $(BUILDDIR)/modes_gen.o $(BUILDDIR)/e_mstring.o $(BUILDDIR)/mymath.o
+	$(DEVICECC) -o $(EMSELF) $(BUILDDIR)/modes_gen.o $(BUILDDIR)/e_mstring.o $(BUILDDIR)/mymath.o $(DEVICECFLAGS)
 $(DEVICESREC): $(EMSELF)
 	e-objcopy --srec-forceS3 --output-target srec $(BUILDDIR)/e_mstring.elf $(DEVICESREC)
 $(BUILDDIR)/threadForce.o: $(SRCDIR)/threadForce.cpp $(INCDIR)/threadForce.h $(INCDIR)/mstring.h $(INCDIR)/ms-data-host.h $(INCDIR)/ms-spara.h $(INCDIR)/ms-const.h
@@ -30,11 +30,13 @@ $(BUILDDIR)/tcpclient.o: $(SRCDIR)/tcpclient.cpp $(INCDIR)/ms-data-host.h $(INCD
 	$(HOSTCC) -c $(SRCDIR)/tcpclient.cpp -o $(BUILDDIR)/tcpclient.o $(HOSTCFLAGS)
 $(BUILDDIR)/host.o: $(SRCDIR)/host.cpp $(INCDIR)/inp_guitar.h $(INCDIR)/host.h $(INCDIR)/ms-data-host.h $(INCDIR)/threadForce.h $(INCDIR)/threadMeasurement.h $(INCDIR)/tcpclient.h
 	$(HOSTCC) -c $(SRCDIR)/host.cpp -o $(BUILDDIR)/host.o $(HOSTCFLAGS)
-$(BUILDDIR)/modes_gen.o: $(INCDIR)/ms-spara.h $(INCDIR)/ms-data-device.h $(INCDIR)/modes_gen.h $(INCDIR)/ms-const.h
+$(BUILDDIR)/modes_gen.o: $(BUILDDIR)/mymath.o $(INCDIR)/mymath.h $(INCDIR)/ms-spara.h $(INCDIR)/ms-data-device.h $(INCDIR)/modes_gen.h $(INCDIR)/ms-const.h
 	$(DEVICECC) -c $(SRCDIR)/modes_gen.c -o $(BUILDDIR)/modes_gen.o $(DEVICECFLAGS)
 $(BUILDDIR)/mstring.o: $(SRCDIR)/mstring.cpp $(INCDIR)/ms-data-host.h $(INCDIR)/mstring.h
 	$(HOSTCC) -c $(SRCDIR)/mstring.cpp -o $(BUILDDIR)/mstring.o $(HOSTCFLAGS)
 $(BUILDDIR)/e_mstring.o: $(SRCDIR)/e_mstring.c $(INCDIR)/e_mstring.h $(INCDIR)/ms-data-device.h
 	$(DEVICECC) -c $(SRCDIR)/e_mstring.c -o $(BUILDDIR)/e_mstring.o $(DEVICECFLAGS)
+$(BUILDDIR)/mymath.o: $(INCDIR)/mymath.h $(SRCDIR)/mymath.c
+	$(DEVICECC) -c $(SRCDIR)/mymath.c -o $(BUILDDIR)/mymath.o $(DEVICECFLAGS)
 clean:
 	rm -f $(BUILDDIR)/*.*
