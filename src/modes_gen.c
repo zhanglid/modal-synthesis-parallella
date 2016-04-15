@@ -171,29 +171,23 @@ int e_string_modes(mstring* n_string, Spara* p_para)
 {
 	int   m = 0, i = 0;	//counter for mode and store
 	float  w, R;//variables for temporary store the modes parameters
-	float varrho = p_para->A*p_para->rho;//the oneverall normailzarion factor
-	float b1_prefix = ((p_para->T*p_para->T) / varrho);//reduce calculation
+	//float varrho = p_para->A*p_para->rho;//the oneverall normailzarion factor
+	float b1_prefix = ((p_para->T*p_para->T) / (p_para->A*p_para->rho) );//reduce calculation
 	float kpm = PI / p_para->L;
 	float wpre1 = ((p_para->kappa*p_para->kappa)-(p_para->b2*p_para->b2))*kpm*kpm*kpm*kpm;
 	float wpre2 = (p_para->c*p_para->c-2*p_para->b1*p_para->b2)*kpm*kpm;
 	float wpre3 = p_para->b1*p_para->b1;
 
-	n_string->wpre[0] = wpre1;
-	n_string->wpre[1] = wpre2;
-	n_string->wpre[2] = wpre3;
-
 	float rpre1 = -p_para->T*p_para->b1;
 	float rpre2 = -p_para->T*p_para->b2*kpm*kpm;
 
-	n_string->rpre[0] = rpre1;
-	n_string->rpre[1] = rpre2;
 
 	float wmax = PI*p_para->Fs;
 	float prewe = kpm*p_para->xe;
 	float prewp = kpm*p_para->xp;
 
-	n_string->prewe = prewe;
-	n_string->prewp = prewp;
+	/*n_string->prewe = prewe;
+	n_string->prewp = prewp;*/
 
 	int mm = 0;
 	n_string->m = 0;
@@ -241,7 +235,7 @@ int e_string_modes(mstring* n_string, Spara* p_para)
 	return 1;
 }
 
-int e_string_modesUpdate(mstring* n_string, Spara* p_para){
+/*int e_string_modesUpdate(mstring* n_string, Spara* p_para){
 	int m = 0;
 	float t = 0;
 	float dEI = (p_para->E)*(p_para->I);
@@ -335,7 +329,7 @@ int e_string_modesUpdate(mstring* n_string, Spara* p_para){
 	}
   return 1;
 }
-
+*/
 
 void e_inp_gen(mstring* n_string, Spara* p_para){
 		size_t i;
@@ -372,10 +366,11 @@ int e_getInp(float *inp){
 
 int e_string_modes_renew(mstring* n_string, Spara* p_para)
 {
+//	extern volatile volatile char *pmsg;
 	while(p_para->version!=pmem->parameters.version) memcpy(p_para,(void*)&(pmem->parameters), sizeof(Spara)); //read new parameters
 	int   m = 0;	//counter for mode and store
-	float w, R;//variables for temporary store the modes parameters
-	float b1_prefix = ((p_para->T*p_para->T) / (p_para->A*p_para->rho));//reduce calculation
+	float w, R; //variables for temporary store the modes parameters
+	float b1_prefix = ((p_para->T*p_para->T) / (p_para->A*p_para->rho)); //reduce calculation
 	float kpm = PI / p_para->L;
 	float wpre1 = ((p_para->kappa*p_para->kappa)-(p_para->b2*p_para->b2))*kpm*kpm*kpm*kpm;
 	float wpre2 = (p_para->c*p_para->c-2*p_para->b1*p_para->b2)*kpm*kpm;
@@ -386,40 +381,39 @@ int e_string_modes_renew(mstring* n_string, Spara* p_para)
 	float prewe = kpm*p_para->xe;
 	float prewp = kpm*p_para->xp;
 
-	//n_string->prewe = prewe;
-	//n_string->prewp = prewp;
 
 	int mm = 0;
 	n_string->m = 0;
-	if (OUTPUT_FORCE)	//n_string->wp[m-1] = -(p_para->Te * m * kpm + (p_para->E) * (p_para->I) * mm * m * kpm * kpm * kpm) * cos(m * kpm * p_para->L);
+	if (OUTPUT_FORCE)
 		m_cos_f32(MODENUM, kpm * p_para->L, n_string->wp);
 	mm_exp_f32(MODENUM, rpre2, rpre1, n_string->R);
+	m_sin_f32(MODENUM, prewe, n_string->we);
+	//n_string->we[i - 1] = sin(m * prewe);
+	mm_exp_f32(MODENUM, -(2e-5) * pow(2,QFACTOR), 0, n_string->qfac);
 	for (m = 1; m <= MODENUM; m++)
 	{
+
 		mm = m * m;
 		w = p_sqrt((wpre1 * mm + wpre2) * mm - wpre3);
-
+		//n_string->qfac[m - 1] = exp(-(2e-5)*pow(2,QFACTOR)*mm);
 		if (w > 0 && w < wmax)
 		{
-			//R = _p_exp(rpre1) * _p_exp(rpre2 * mm);
-			//n_string->R[i - 1] = R;
+
 			R = n_string->R[m - 1];
-			//R = _p_exp(rpre1 + rpre2 * mm);
-			//n_string->R[m - 1] = R;
 			n_string->alph[m - 1] = p_para->b1 + p_para->b2 * mm * kpm * kpm;
 			n_string->w[m - 1] = w;
 			n_string->a1[m - 1] = -2 * R * p_cos_f32(w * p_para->T);
 			n_string->a2[m - 1] = R * R;
 			n_string->b1[m - 1] = b1_prefix * R;
 			n_string->m++;
-			//if (OUTPUT_VELOCITY) n_string->wp[m - 1] = p_sin_f32(m * prewp);
-		//	if (OUTPUT_FORCE)	n_string->wp[m - 1] = -(p_para->Te * m * kpm + (p_para->E) * (p_para->I) * mm * m * kpm * kpm * kpm) * p_cos_f32(m * kpm * p_para->L);
 			if (OUTPUT_FORCE)	n_string->wp[m - 1] = -(p_para->Te * m * kpm + (p_para->E) * (p_para->I) * mm * m * kpm * kpm * kpm) * n_string->wp[m-1];
+			//snprintf(pmsg, 128, "%d,q:%f,b1:%f,we:%f,a1:%f,a2:%f", m, n_string->qfac[m - 1], n_string->b1[m - 1], n_string->we[m - 1], n_string->a1[m - 1], n_string->a2[m - 1]);
+			//e_wait(E_CTIMER_1, 2*600E6);
 		}
 		else
 			break;
 	}
-	if (OUTPUT_VELOCITY) //n_string->wp[m-1] = sin(m * prewp);
+	if (OUTPUT_VELOCITY)
 		m_sin_f32(m - 1, prewp, n_string->wp);
 
 	return 1;

@@ -51,7 +51,8 @@ int main(void)
 		memcpy((void*)&sp,(void*)&(pmem->parameters), sizeof(Spara));
 	}while(sp.version != pmem->parameters.version);
 	memspace * test = NULL;
-	e_string_modes(&s1, &sp);
+	//e_string_modes(&s1, &sp);
+	e_string_modes_renew(&s1, &sp);
 	e_inp_gen(&s1, &sp);
 	e_string_output(s1, &sp);
 	return EXIT_SUCCESS;
