@@ -9,6 +9,8 @@
 void* threadMeasurement(void* p){
 	mstring* (*p_ms)[4]=(mstring* (*)[4])p;
 	volatile int* pnum=&sendnum;
+	extern volatile char ChordState;
+	char *StrPos = "----------------------------------------";
 	while(1){
 		refresh();
 		usleep(30*1000);
@@ -20,7 +22,9 @@ void* threadMeasurement(void* p){
 		mvprintw(0,10,"%.2fs", (float)((*pnum)*TCPSPEED/44100.0));
 		attroff(A_BOLD);
 		mvprintw(18,0,"Msg:%s",pmsg);
-
+		mvprintw(17,0,"Chord Major:%c",ChordState);
+		mvprintw(16,0,"%s",StrPos);
+		mvprintw(16,(int)(39*pmem->parameters.re),"+");
 		mvprintw(9,0,"Force status:%c",pmem->syn[2]);
 		mvprintw(11,0,"Fs:%d\tL:%f\ta:%e\tTe:%f\tE:%f\t",pmem->parameters.Fs,pmem->parameters.L,pmem->parameters.a,pmem->parameters.Te,pmem->parameters.E);
 		mvprintw(12,0,"rho:%f\tb1:%f\tb2:%e\tre:%e\trp:%f\t",pmem->parameters.rho,pmem->parameters.b1,pmem->parameters.b2,pmem->parameters.re,pmem->parameters.rp);

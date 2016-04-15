@@ -22,7 +22,7 @@ volatile memspace *pmem = NULL;
 volatile char *pmsg = NULL;
 volatile float *pinp = NULL;
 mstring s1;
-float inpvalue[]={ 0.1464, 0.5000, 0.8536, 1.0000, 0.8536, 0.5000, 0.1464};
+//float inpvalue[]={ 0.1464, 0.5000, 0.8536, 1.0000, 0.8536, 0.5000, 0.1464};
 unsigned row, col;
 Spara sp;
 
@@ -82,7 +82,8 @@ int e_string_output(mstring string, Spara* p_para)
 			j++;
 
 			if (pmem->paraUpdate == 'y'){
-				e_string_modesUpdate(&string, p_para);
+				//e_string_modesUpdate(&string, p_para);
+				e_string_modes_renew(&string, p_para);
 				e_inp_gen(&string, p_para);
 				while(pmem->paraUpdate != 'n') pmem->paraUpdate = 'n';
 			}
@@ -112,8 +113,8 @@ int e_string_output(mstring string, Spara* p_para)
 			for (i = 0; i < string.m; i++)
 			{
 				p_PHI0[i] = string.b1[i] * string.we[i] * inp - string.a1[i] * p_PHI1[i] - string.a2[i] * p_PHI2[i];
-				if (OUTPUT_VELOCITY) V += string.wp[i] * (p_PHI0[i] - p_PHI2[i]);
-				if (OUTPUT_FORCE) F += string.wp[i] * p_PHI0[i];
+				if (OUTPUT_VELOCITY) V += string.wp[i] * (p_PHI0[i] - p_PHI2[i]) * string.qfac[i];
+				if (OUTPUT_FORCE) F += string.wp[i] * p_PHI0[i] * string.qfac[i];
 			}
 
 			if (OUTPUT_VELOCITY){

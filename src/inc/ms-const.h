@@ -11,4 +11,5 @@
 #define DEBUG 0
 #define INPSIZE 5000
 #define INPGUITARLENGTH 3709
+#define QFACTOR 2
 #endif

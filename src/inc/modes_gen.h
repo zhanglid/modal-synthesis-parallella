@@ -16,6 +16,7 @@
 extern volatile memspace *pmem;
 int e_string_modes(mstring* n_string, Spara* p_para);
 int e_string_modesUpdate(mstring* n_string, Spara* p_para);
+int e_string_modes_renew(mstring* n_string, Spara* p_para);
 void e_inp_gen(mstring* n_string, Spara* p_para);
 int e_getInp(float* inp);
 #endif

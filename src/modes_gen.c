@@ -51,6 +51,30 @@ static inline float _p_exp(const float x)
 		return 1.f / __p_exp_pos(-x);
 }
 
+static inline float p_sqrt(const float z)
+{
+	float x;
+	union {
+		float f;
+		int i;
+	} j;
+	float xhalf = 0.5f*z;
+
+	j.f = z;
+	j.i = 0x5f375a86 - (j.i >> 1);
+	x = j.f;
+
+	// Newton steps, repeating this increases accuracy
+	x = x*(1.5f - xhalf*x*x);
+	x = x*(1.5f - xhalf*x*x);
+	x = x*(1.5f - xhalf*x*x);
+
+	// x contains the inverse sqrt
+
+	// Multiply the inverse sqrt by the input to get the sqrt
+	return z * x;
+}
+
 
 static inline float p_cos_f32(const float a)
 {
@@ -76,10 +100,77 @@ static inline float p_cos_f32(const float a)
 
 }
 
+static inline float p_sin_f32(float theta)
+{
+		float val = 1.0f;
+		//int k;
+
+		while (theta >= 3.14159265) {
+			theta -= 2 * 3.14159265;
+		}
+		while (theta <= -3.14159265) {
+			theta += 2 * 3.14159265;
+		}
+
+		val = 1.0f - theta * theta * 0.083333333f * 0.076923077f * val;
+		val = 1.0f - theta * theta * 0.1f * 0.090909091f * val;
+		val = 1.0f - theta * theta * 0.125f * 0.111111111f * val;
+		val = 1.0f - theta * theta * 0.166666667f * 0.142857143f * val;
+		val = 1.0f - theta * theta * 0.25f * 0.2f * val;
+		val = 1.0f - theta * theta * 0.5f * 0.333333333f * val;
+
+		return theta * val;
+	}
+
+void m_sin_f32(const int m, float theta, float *dst){
+	if (m <= 0) return;
+	int i;
+	float cos1m = p_cos_f32(theta);
+	float sin1m = p_sin_f32(theta);
+	dst[0] = cos1m;
+	float cos_now = cos1m;
+	float sin_now = sin1m;
+	for (i = 1; i < m; i++) {
+		float t_cos = cos_now * cos1m - sin_now * sin1m;
+		sin_now = sin_now * cos1m + cos_now * sin1m;
+		cos_now = t_cos;
+		dst[i] = sin_now;
+	}
+}
+
+void m_cos_f32(const int m, float theta, float *dst){
+	if (m <= 0) return;
+	int i;
+	float cos1m = p_cos_f32(theta);
+	float sin1m = p_sin_f32(theta);
+	dst[0] = cos1m;
+	float cos_now = cos1m;
+	float sin_now = sin1m;
+	for (i = 1; i < m; i++) {
+		float t_cos = cos_now * cos1m - sin_now * sin1m;
+		sin_now = sin_now * cos1m + cos_now * sin1m;
+		cos_now = t_cos;
+		dst[i] = cos_now;
+	}
+}
+void mm_exp_f32(const int m, float theta_b, float theta_a, float *dst){
+	float em1 = _p_exp(theta_b);
+	float ema = _p_exp(theta_a);
+	float em1_now = em1;
+	float em2_now =  em1 * em1;
+	dst[0] = ema * em1;
+	int i;
+	for (i = 1; i < m; i++) {
+		em1_now = em1_now * em2_now * em1;
+		em2_now = em2_now * em1 * em1;
+		dst[i] = ema * em1_now;
+	}
+}
+
 int e_string_modes(mstring* n_string, Spara* p_para)
 {
 	int   m = 0, i = 0;	//counter for mode and store
-	float k, alph, w, f, wwe, wwp, R;//variables for temporary store the modes parameters
+	float  w, R;//variables for temporary store the modes parameters
 	float varrho = p_para->A*p_para->rho;//the oneverall normailzarion factor
 	float b1_prefix = ((p_para->T*p_para->T) / varrho);//reduce calculation
 	float kpm = PI / p_para->L;
@@ -110,14 +201,17 @@ int e_string_modes(mstring* n_string, Spara* p_para)
 	for (m = 1; m <= MODENUM; m++)
 	{
 		mm = m * m;
-		w = sqrt((wpre1*mm + wpre2) * mm - wpre3);
+		//float qfac = exp(-(2e-5)*pow(2,QFACTOR)*mm);
+		//float qkpm = kpm * qfac;
+		w = sqrt((wpre1 * mm + wpre2) * mm - wpre3);
 
 		if (w > 0 && w < wmax)
 		{
 			i++;
+			n_string->qfac[i - 1] = exp(-(2e-5)*pow(2,QFACTOR)*mm);
 			R = exp(rpre1 + rpre2 * mm);
 			n_string->R[i - 1] = R;
-			n_string->alph[i - 1] = p_para->b1 + p_para->b2*mm*kpm*kpm;
+			n_string->alph[i - 1] = p_para->b1 + p_para->b2 * mm * kpm * kpm;
 			n_string->w[i - 1] = w;
 			n_string->we[i - 1] = sin(m * prewe);
 			if (OUTPUT_VELOCITY) n_string->wp[i - 1] = sin(m * prewp);
@@ -139,7 +233,7 @@ int e_string_modes(mstring* n_string, Spara* p_para)
 		if (OUTPUT_FORCE){
 			n_string->dwft[i - 1] = -m * kpm * cos(m * kpm * p_para->L);
 			n_string->dwfei[i - 1] = -mm * m * kpm * kpm * kpm * cos(m * kpm * p_para->L);
-			n_string->dwfkpm[i - 1] = -(m * p_para->Te+3 * kpm * kpm * (p_para->E) * (p_para->I) * mm * m) * cos(m * kpm * p_para->L)+m * p_para->L * (p_para->Te * m * kpm+(p_para->E) * (p_para->I) * mm * m * kpm * kpm * kpm) * sin(m * kpm * p_para->L);
+			n_string->dwfkpm[i - 1] = -(m * p_para->Te + 3 * kpm * kpm * (p_para->E) * (p_para->I) * mm * m) * cos(m * kpm * p_para->L)+m * p_para->L * (p_para->Te * m * kpm+(p_para->E) * (p_para->I) * mm * m * kpm * kpm * kpm) * sin(m * kpm * p_para->L);
 		}
 		}
 
@@ -148,12 +242,12 @@ int e_string_modes(mstring* n_string, Spara* p_para)
 }
 
 int e_string_modesUpdate(mstring* n_string, Spara* p_para){
-	int m=0;
-	float t=0;
+	int m = 0;
+	float t = 0;
 	float dEI = (p_para->E)*(p_para->I);
 	float dTe = p_para->Te;
 	float dkpm = PI / p_para->L;
-	while(p_para->version!=pmem->parameters.version) memcpy(p_para,(void*)&(pmem->parameters),sizeof(Spara)); //read new parameters
+	while(p_para->version != pmem->parameters.version) memcpy(p_para, (void*)&(pmem->parameters), sizeof(Spara)); //read new parameters
 	p_para->xe = p_para->re*p_para->L;//update
 	p_para->xp = p_para->rp*p_para->L;
 
@@ -194,9 +288,9 @@ int e_string_modesUpdate(mstring* n_string, Spara* p_para){
 	n_string->rpre[0]+=drpre1;
 	n_string->rpre[1]+=drpre2;
 
-	float dprewe=kpm*p_para->xe-n_string->prewe;
-	float dprewp=kpm*p_para->xp-n_string->prewp;
-	n_string->prewe+=dprewe;
+	float dprewe = kpm * p_para->xe - n_string->prewe;
+	float dprewp = kpm * p_para->xp - n_string->prewp;
+	n_string->prewe += dprewe;
 	//n_string->prewp+=dprewp;
 	if (OUTPUT_VELOCITY) {
 		t=n_string->prewp+dprewp;
@@ -207,6 +301,8 @@ int e_string_modesUpdate(mstring* n_string, Spara* p_para){
 
 	float varrho=p_para->A*p_para->rho;
 	float b1_prefix=((p_para->T*p_para->T) / varrho);
+	m_sin_f32(n_string->m, n_string->prewe, n_string->we);
+	//n_string->we[m-1] = p_sin_f32(m * n_string->prewe);
 	for (m = 1; m <= n_string->m; m++)
 	{
 		//mm=m*m;
@@ -220,14 +316,16 @@ int e_string_modesUpdate(mstring* n_string, Spara* p_para){
 			dR=n_string->dRr1[m-1]*drpre1+n_string->dRr2[m-1]*drpre2;
 			t=n_string->R[m-1]+dR;
 			while(n_string->R[m-1]!=t) n_string->R[m-1]=t;
-			n_string->we[m-1] += n_string->dwep[m-1]*dprewe;
+			//n_string->we[m-1] += n_string->dwep[m-1]*dprewe;
+
+			//n_string->we[m-1] = p_sin_f32(m * n_string->prewe);
 			if (OUTPUT_VELOCITY) n_string->wp[m-1] += n_string->dwpp[m-1]*dprewp;
-			n_string->a1[m - 1] = -2 * n_string->R[m-1]*p_cos_f32(n_string->w[m-1]*p_para->T);
+			n_string->a1[m - 1] = -2 * n_string->R[m-1] * p_cos_f32(n_string->w[m-1]*p_para->T);
 			n_string->a2[m-1] = n_string->R[m-1]*n_string->R[m-1];
 			if (OUTPUT_FORCE)	n_string->wp[m-1] += n_string->dwft[m-1]*dTe + n_string->dwfei[m-1]*dEI + n_string->dwfkpm[m-1]*dkpm;
 			t = b1_prefix*n_string->R[m-1];
 			while(n_string->b1[m-1]!=t) n_string->b1[m-1]=t;
-			n_string->alph[m - 1] = p_para->b1 + p_para->b2 * m*m * kpm * kpm;
+			n_string->alph[m - 1] = p_para->b1 + p_para->b2 * m * m * kpm * kpm;
 		}
 		else
 		{
@@ -268,4 +366,61 @@ int e_getInp(float *inp){
 			return -1;
 		}
 		return 1;
+}
+
+
+
+int e_string_modes_renew(mstring* n_string, Spara* p_para)
+{
+	while(p_para->version!=pmem->parameters.version) memcpy(p_para,(void*)&(pmem->parameters), sizeof(Spara)); //read new parameters
+	int   m = 0;	//counter for mode and store
+	float w, R;//variables for temporary store the modes parameters
+	float b1_prefix = ((p_para->T*p_para->T) / (p_para->A*p_para->rho));//reduce calculation
+	float kpm = PI / p_para->L;
+	float wpre1 = ((p_para->kappa*p_para->kappa)-(p_para->b2*p_para->b2))*kpm*kpm*kpm*kpm;
+	float wpre2 = (p_para->c*p_para->c-2*p_para->b1*p_para->b2)*kpm*kpm;
+	float wpre3 = p_para->b1*p_para->b1;
+	float rpre1 = -p_para->T*p_para->b1;
+	float rpre2 = -p_para->T*p_para->b2*kpm*kpm;
+	float wmax = PI * p_para->Fs;
+	float prewe = kpm*p_para->xe;
+	float prewp = kpm*p_para->xp;
+
+	//n_string->prewe = prewe;
+	//n_string->prewp = prewp;
+
+	int mm = 0;
+	n_string->m = 0;
+	if (OUTPUT_FORCE)	//n_string->wp[m-1] = -(p_para->Te * m * kpm + (p_para->E) * (p_para->I) * mm * m * kpm * kpm * kpm) * cos(m * kpm * p_para->L);
+		m_cos_f32(MODENUM, kpm * p_para->L, n_string->wp);
+	mm_exp_f32(MODENUM, rpre2, rpre1, n_string->R);
+	for (m = 1; m <= MODENUM; m++)
+	{
+		mm = m * m;
+		w = p_sqrt((wpre1 * mm + wpre2) * mm - wpre3);
+
+		if (w > 0 && w < wmax)
+		{
+			//R = _p_exp(rpre1) * _p_exp(rpre2 * mm);
+			//n_string->R[i - 1] = R;
+			R = n_string->R[m - 1];
+			//R = _p_exp(rpre1 + rpre2 * mm);
+			//n_string->R[m - 1] = R;
+			n_string->alph[m - 1] = p_para->b1 + p_para->b2 * mm * kpm * kpm;
+			n_string->w[m - 1] = w;
+			n_string->a1[m - 1] = -2 * R * p_cos_f32(w * p_para->T);
+			n_string->a2[m - 1] = R * R;
+			n_string->b1[m - 1] = b1_prefix * R;
+			n_string->m++;
+			//if (OUTPUT_VELOCITY) n_string->wp[m - 1] = p_sin_f32(m * prewp);
+		//	if (OUTPUT_FORCE)	n_string->wp[m - 1] = -(p_para->Te * m * kpm + (p_para->E) * (p_para->I) * mm * m * kpm * kpm * kpm) * p_cos_f32(m * kpm * p_para->L);
+			if (OUTPUT_FORCE)	n_string->wp[m - 1] = -(p_para->Te * m * kpm + (p_para->E) * (p_para->I) * mm * m * kpm * kpm * kpm) * n_string->wp[m-1];
+		}
+		else
+			break;
+	}
+	if (OUTPUT_VELOCITY) //n_string->wp[m-1] = sin(m * prewp);
+		m_sin_f32(m - 1, prewp, n_string->wp);
+
+	return 1;
 }

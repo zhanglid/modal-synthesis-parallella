@@ -35,7 +35,7 @@ mstring::mstring(unsigned _row, unsigned _col, Spara _sp) {
       pmsg = pmem->msg;
       pinp = (volatile float*)inpmem.base;
       do {
-        memcpy((void *)pinp, guitar_data, INPGUITARLENGTH*sizeof(float));
+        memcpy((void *)pinp, guitar_data, INPGUITARLENGTH * sizeof(float));
       } while(pinp[100] != guitar_data[100]);
       if (DEBUG){
         fprintf(stderr, "mstring::msg.base:%08x,mem.base:%08x,sizeof(memspace):%d\n",(unsigned)pmsg, (unsigned)pmem,sizeof(memspace));

@@ -39,7 +39,7 @@ typedef struct
 	float dwft[MODENUM];
 	float dwfei[MODENUM];
 	float dwfkpm[MODENUM];
-
+	float qfac[MODENUM];
 	float wpre[3];
 	float rpre[2];
 	float prewe;
