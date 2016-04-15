@@ -22,7 +22,7 @@ typedef struct
 	float w[MODENUM];
 	float R[MODENUM];
 	float alph[MODENUM];
-	float dwep[MODENUM];
+	/*float dwep[MODENUM];
 
 	float dwpp[MODENUM];
 
@@ -38,12 +38,12 @@ typedef struct
 
 	float dwft[MODENUM];
 	float dwfei[MODENUM];
-	float dwfkpm[MODENUM];
+	float dwfkpm[MODENUM];*/
 	float qfac[MODENUM];
-	float wpre[3];
-	float rpre[2];
-	float prewe;
-	float prewp;
+	//float wpre[3];
+	//float rpre[2];
+	//float prewe;
+//	float prewp;
 	int m;
 }mstring;
 #endif
