@@ -8,6 +8,8 @@ void* threadForce(void *_ms){
 	volatile memspace *pmem = (volatile memspace *)(p_ms[0][0]->pmem);
 	volatile char* p_ms_force_array[6];
 	volatile char* p_ms_force = &(pmem->force);
+	extern volatile bool fadeOutSet;
+	extern volatile bool fadeInSet;
 	ChordArrayGen(p_ms, p_ms_force_array, 'A');
 /*	for (size_t i = 0; i < 6; i++) {
 		volatile memspace *tmem = (volatile memspace *)(p_ms[i/4][i%4]->pmem);
@@ -98,7 +100,23 @@ void* threadForce(void *_ms){
 						break;
 			case 's':
 						{
-								static unsigned delta_time = 100*1000; //10ms
+								static unsigned delta_time = 10*1000; //10ms
+								while((p_ms_force_array[0])[0] != 'y') (p_ms_force_array[0])[0] = 'y';
+								usleep(delta_time);
+								while((p_ms_force_array[1])[0] != 'y') (p_ms_force_array[1])[0] = 'y';
+								usleep(delta_time);
+								while((p_ms_force_array[2])[0] != 'y') (p_ms_force_array[2])[0] = 'y';
+								usleep(delta_time);
+								while((p_ms_force_array[3])[0] != 'y') (p_ms_force_array[3])[0] = 'y';
+								usleep(delta_time);
+								while((p_ms_force_array[4])[0] != 'y') (p_ms_force_array[4])[0] = 'y';
+								usleep(delta_time);
+								while((p_ms_force_array[5])[0] != 'y') (p_ms_force_array[5])[0] = 'y';
+						}
+						break;
+			case 'd':
+						{
+								static unsigned delta_time = 100*1000; //100ms
 								while((p_ms_force_array[0])[0] != 'y') (p_ms_force_array[0])[0] = 'y';
 								usleep(delta_time);
 								while((p_ms_force_array[1])[0] != 'y') (p_ms_force_array[1])[0] = 'y';
@@ -114,17 +132,32 @@ void* threadForce(void *_ms){
 						break;
 			case 'z':
 						{
+								fadeOutSet = true;
+								while (fadeOutSet == true) {
+										usleep(1000);
+								}
 								ChordArrayGen(p_ms, p_ms_force_array, 'A');
+								fadeInSet = true;
 						}
 						break;
 			case 'x':
 			      {
+								fadeOutSet = true;
+								while (fadeOutSet == true) {
+										usleep(1000);
+								}
 							  ChordArrayGen(p_ms, p_ms_force_array, 'D');
+								fadeInSet = true;
 						}
 						break;
 			case 'c':
 						{
+								fadeOutSet = true;
+								while (fadeOutSet == true) {
+										usleep(1000);
+								}
 								ChordArrayGen(p_ms, p_ms_force_array, 'E');
+								fadeInSet = true;
 						}
 						break;
 			case ',':
@@ -180,7 +213,13 @@ void  ChordArrayGen(mstring* (*p_ms)[4], volatile char** p_ms_force_array, char 
 		8, 1, 9, 10, 11, 12					//Major E
 	};
 	extern volatile char ChordState;
-	const unsigned * pIndex = NULL;
+	static const unsigned *  pIndex = ChordIndex[0];
+	for (size_t i = 0; i < 6; i++) {
+		volatile memspace *tmem = (volatile memspace *)(p_ms[pIndex[i]/4][pIndex[i]%4]->pmem);
+		do {
+			tmem->reset = 'y';
+		} while(tmem->reset != 'y');
+	}
 	switch (ChordType) {
 		case 'A':
 						pIndex = ChordIndex[0];

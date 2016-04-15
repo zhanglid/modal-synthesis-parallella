@@ -8,6 +8,7 @@ typedef struct _memspace{
   volatile char syn[3];
   volatile char paraUpdate;
   volatile char force;
+	volatile char reset;
   volatile unsigned num;
   volatile char msg[128];
 } memspace;
@@ -22,28 +23,7 @@ typedef struct
 	float w[MODENUM];
 	float R[MODENUM];
 	float alph[MODENUM];
-	/*float dwep[MODENUM];
-
-	float dwpp[MODENUM];
-
-	float dRr1[MODENUM];
-	float dRr2[MODENUM];
-
-	float da1R[MODENUM];
-	float da1w[MODENUM];
-
-	float dwp1[MODENUM];
-	float dwp2[MODENUM];
-	float dwp3[MODENUM];
-
-	float dwft[MODENUM];
-	float dwfei[MODENUM];
-	float dwfkpm[MODENUM];*/
 	float qfac[MODENUM];
-	//float wpre[3];
-	//float rpre[2];
-	//float prewe;
-//	float prewp;
 	int m;
 }mstring;
 #endif

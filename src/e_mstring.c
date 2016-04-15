@@ -83,7 +83,6 @@ int e_string_output(mstring string, Spara* p_para)
 			j++;
 
 			if (pmem->paraUpdate == 'y'){
-				//e_string_modesUpdate(&string, p_para);
 				e_string_modes_renew(&string, p_para);
 				e_inp_gen(&string, p_para);
 				while(pmem->paraUpdate != 'n') pmem->paraUpdate = 'n';
@@ -110,7 +109,24 @@ int e_string_output(mstring string, Spara* p_para)
 			{
 				inp = 0;
 			}
-
+			if (pmem->reset == 'y')
+			{
+				for (i = 0; i < string.m; i++)
+				{
+					p_PHI0[i] = 0;
+				}
+				for (i = 0; i < string.m; i++)
+				{
+					p_PHI1[i] = 0;
+				}
+				for (i = 0; i < string.m; i++)
+				{
+					p_PHI2[i] = 0;
+				}
+				do {
+					pmem->reset = 'n';
+				} while(pmem->reset != 'n');
+			}
 			for (i = 0; i < string.m; i++)
 			{
 				p_PHI0[i] = string.b1[i] * string.we[i] * inp - string.a1[i] * p_PHI1[i] - string.a2[i] * p_PHI2[i];

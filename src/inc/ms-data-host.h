@@ -10,6 +10,7 @@ typedef struct _memspace{
 	volatile char syn[3];
 	volatile char paraUpdate;
 	volatile char force;
+	volatile char reset;
 	volatile unsigned num;
 	volatile char msg[128];
 } memspace;

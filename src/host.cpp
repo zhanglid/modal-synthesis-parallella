@@ -6,8 +6,11 @@
 #include <ncurses.h>
 #include "inc/host.h"
 #include "inc/inp_guitar.h"
+#define FADETIME_PER_FRAME 50
 float * guitar_data = _guitar_data;
 volatile char ChordState = 'A';
+volatile bool fadeOutSet = false;
+volatile bool fadeInSet = false;
 int main() {
 /*	if (DEBUG) {
 		FILE *stream = freopen( "log.out", "w", stderr );
@@ -107,6 +110,28 @@ int main() {
 						tmp[n]+=p_ms[i][j]->pmem->data[n];
 					}
 				}
+			}
+			if (fadeOutSet){
+				static unsigned fadeOutStep = 0;
+					for (size_t i = 0; i < TCPSPEED; i++) {
+							tmp[i] *= 1 - ((float)(fadeOutStep * TCPSPEED + i))/(TCPSPEED * FADETIME_PER_FRAME);
+					}
+					fadeOutStep ++;
+					if (fadeOutStep == FADETIME_PER_FRAME){
+						fadeOutStep = 0;
+						fadeOutSet = false;
+					}
+			}
+			if (fadeInSet){
+				static unsigned fadeInStep = 0;
+					for (size_t i = 0; i < TCPSPEED; i++) {
+							tmp[i] *= ((float)(fadeInStep * TCPSPEED + i))/(TCPSPEED * FADETIME_PER_FRAME);
+					}
+					fadeInStep ++;
+					if (fadeInStep == FADETIME_PER_FRAME){
+						fadeInStep = 0;
+						fadeInSet = false;
+					}
 			}
 			tcpsend.sendData(tmp, TCPSPEED);
 			for (size_t i = 0; i < 4; i++){

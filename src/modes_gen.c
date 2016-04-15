@@ -4,8 +4,8 @@
 	Website: https://github.com/dzl199401/Modal-Synthesis-Parallella
 
 	This is the function for the DEVICE side of the program.
-  e_string_modes() used to initialize the string mode parameters
-  e_string_modesUpdate() used to update the mode parameters, when we change
+  e_string_modes_renew() used to initialize the string mode parameters
+  e_string_modes_renew() also used to update the mode parameters, when we change
   it in real-time.
 */
 /************************************************************************/
@@ -16,7 +16,6 @@
 #include "e_lib.h"
 #include "inc/modes_gen.h"
 #include "inc/mymath.h"
-//#include "inc/e_mstring.h"
 
 
 void e_inp_gen(mstring* n_string, Spara* p_para){
@@ -95,8 +94,6 @@ int e_string_modes_renew(mstring* n_string, Spara* p_para)
 			n_string->b1[m - 1] = b1_prefix * R;
 			n_string->m++;
 			if (OUTPUT_FORCE)	n_string->wp[m - 1] = -(p_para->Te * m * kpm + (p_para->E) * (p_para->I) * mm * m * kpm * kpm * kpm) * n_string->wp[m-1];
-			//snprintf(pmsg, 128, "%d,q:%f,b1:%f,we:%f,a1:%f,a2:%f", m, n_string->qfac[m - 1], n_string->b1[m - 1], n_string->we[m - 1], n_string->a1[m - 1], n_string->a2[m - 1]);
-			//e_wait(E_CTIMER_1, 2*600E6);
 		}
 		else
 			break;

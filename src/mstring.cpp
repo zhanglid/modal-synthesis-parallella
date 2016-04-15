@@ -46,6 +46,7 @@ mstring::mstring(unsigned _row, unsigned _col, Spara _sp) {
     pmem->paraUpdate='n';
     pmem->syn[0]='n';
     pmem->force='n';
+    pmem->reset='n';
     do {
       memcpy((void*)&(pmem->parameters),(void*)&sp,sizeof(Spara));
   }while(pmem->parameters.version != sp.version);
