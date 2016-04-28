@@ -108,7 +108,7 @@ void m_sin_f32(const int m, float theta, float *dst){
 	int i;
 	float cos1m = p_cos_f32(theta);
 	float sin1m = p_sin_f32(theta);
-	dst[0] = cos1m;
+	dst[0] = sin1m;
 	float cos_now = cos1m;
 	float sin_now = sin1m;
 	for (i = 1; i < m; i++) {
@@ -134,16 +134,31 @@ void m_cos_f32(const int m, float theta, float *dst){
 		dst[i] = cos_now;
 	}
 }
+
 void mm_exp_f32(const int m, float theta_b, float theta_a, float *dst){
 	float em1 = _p_exp(theta_b);
 	float ema = _p_exp(theta_a);
 	float em1_now = em1;
-	float em2_now =  em1 * em1;
+	float em2_now = em1 * em1;
 	dst[0] = ema * em1;
 	int i;
 	for (i = 1; i < m; i++) {
 		em1_now = em1_now * em2_now * em1;
+		//em1_now = em1_now  * em1;
 		em2_now = em2_now * em1 * em1;
+		dst[i] = ema * em1_now;
+	}
+}
+
+void m_exp_f32(const int m, float theta_b, float theta_a, float *dst){
+	float em1 = _p_exp(theta_b);
+	float ema = _p_exp(theta_a);
+	float em1_now = em1;
+	//float em2_now = em1 * em1;
+	dst[0] = ema * em1;
+	int i;
+	for (i = 1; i < m; i++) {
+		em1_now = em1_now  * em1;
 		dst[i] = ema * em1_now;
 	}
 }

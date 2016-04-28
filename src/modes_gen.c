@@ -23,17 +23,24 @@ void e_inp_gen(mstring* n_string, Spara* p_para){
 		extern volatile float *pinp;
 		static float sum = 4.4044;
 		float exp_alph_t[n_string->m];
+		extern volatile char *pmsg;
+
 		float ampValue = (0.000008f*(p_para->c + p_para->kappa*p_para->kappa)/p_para->T)/sum;
+
 		if (ampValue != 1){
 			sum = ampValue * sum;
 			for (i = 0; i < INPGUITARLENGTH; i++) {
 				float t;
 				t = ampValue * pinp[i];
+
 				do {
 						pinp[i] = t;
+						//snprintf(pmsg, 50, "c[%f],kp[%f],T[%f]",p_para->c, p_para->kappa,p_para->T);
+
 				} while(pinp[i] != t);
 			}
 		}
+
 }
 
 
@@ -53,8 +60,8 @@ int e_getInp(float *inp){
 
 int e_string_modes_renew(mstring* n_string, Spara* p_para)
 {
-//	extern volatile volatile char *pmsg;
-	while(p_para->version!=pmem->parameters.version) memcpy(p_para,(void*)&(pmem->parameters), sizeof(Spara)); //read new parameters
+	extern volatile volatile char *pmsg;
+	while(p_para->version != pmem.parameters->version) memcpy(p_para,(void*)(pmem.parameters), DATA_OFF); //read new parameters
 	int   m = 0;	//counter for mode and store
 	float w, R; //variables for temporary store the modes parameters
 	float b1_prefix = ((p_para->T*p_para->T) / (p_para->A*p_para->rho)); //reduce calculation
@@ -75,8 +82,10 @@ int e_string_modes_renew(mstring* n_string, Spara* p_para)
 		m_cos_f32(MODENUM, kpm * p_para->L, n_string->wp);
 	mm_exp_f32(MODENUM, rpre2, rpre1, n_string->R);
 	m_sin_f32(MODENUM, prewe, n_string->we);
-	//n_string->we[i - 1] = sin(m * prewe);
-	mm_exp_f32(MODENUM, -(2e-5) * pow(2,QFACTOR), 0, n_string->qfac);
+	//
+	//m_exp_f32(MODENUM, -(2e-5) * pow(2,QFACTOR), 0, n_string->qfac);
+
+	m_exp_f32(MODENUM, p_para->afactor, 0, n_string->qfac);
 	for (m = 1; m <= MODENUM; m++)
 	{
 
@@ -85,7 +94,8 @@ int e_string_modes_renew(mstring* n_string, Spara* p_para)
 		//n_string->qfac[m - 1] = exp(-(2e-5)*pow(2,QFACTOR)*mm);
 		if (w > 0 && w < wmax)
 		{
-
+			//n_string->we[m - 1] = sin(m * prewe);
+			//snprintf(pmsg,128,"%f",prewe);
 			R = n_string->R[m - 1];
 			n_string->alph[m - 1] = p_para->b1 + p_para->b2 * mm * kpm * kpm;
 			n_string->w[m - 1] = w;
